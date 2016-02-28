@@ -1,27 +1,25 @@
-FROM ubuntu:14.04
+FROM ubuntu:14.04 
 
 MAINTAINER Ron Kurr <kurr@kurron.org>
 
-RUN apt-get --quiet update && \
-    apt-get --quiet --yes install unzip && \
-    apt-get clean
+LABEL org.kurron.ide.name="Consul" org.kurron.ide.version=0.6.3
 
-ADD https://bintray.com/artifact/download/mitchellh/consul/0.5.0_linux_amd64.zip /tmp/consul.zip
+ADD https://releases.hashicorp.com/consul/0.6.3/consul_0.6.3_linux_amd64.zip /tmp/ide.zip
 
-RUN cd /usr/sbin && unzip /tmp/consul.zip && chmod +x /usr/sbin/consul && rm /tmp/consul.zip
+RUN apt-get update && \
+    apt-get install -y unzip ca-certificates && \
+    unzip /tmp/ide.zip -d /usr/local/bin && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/*
 
-ADD consul.json /config/
+RUN chmod 0555 /usr/local/bin/*
 
-ADD https://bintray.com/artifact/download/mitchellh/consul/0.5.0_web_ui.zip /tmp/webui.zip
+VOLUME ["/home/developer"]
+VOLUME ["/pwd"]
 
-RUN cd /tmp/ && unzip webui.zip && mv dist/ /webui/
-
-# export meta-data about this container
-ENV KURRON_CONSUL_VERSION 0.5.0 
-
-EXPOSE 8300 8301 8301/udp 8302 8302/udp 8400 8500 53/udp
-
-VOLUME ["/data"]
-
-ENTRYPOINT [ "/usr/sbin/consul", "agent", "-config-dir=/config" ]
-CMD []
+ENV HOME /home/developer
+WORKDIR /pwd
+ENTRYPOINT ["/usr/local/bin/consul"]
+CMD ["--version"]
