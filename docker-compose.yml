@@ -7,3 +7,4 @@ consul:
     user: 1000:1000
     stdin_open: true
     tty: true
+    command: --version
